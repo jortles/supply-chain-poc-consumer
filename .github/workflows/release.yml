@@ -1,0 +1,26 @@
+# Mirrors google/flatbuffers .github/workflows/release.yml
+# Flatbuffers uses: actions-rs/toolchain@v1 (archived, single maintainer, lightweight tag)
+# This PoC uses: jortles/supply-chain-poc-action@v1 (same tag semantics)
+name: PoC Release Pipeline
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-crates:
+    name: Publish crates.io (mirrors flatbuffers)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # In flatbuffers: actions-rs/toolchain@v1
+      # Here: our PoC action with same lightweight v1 tag
+      - uses: jortles/supply-chain-poc-action@v1
+        with:
+          toolchain: stable
+
+      - name: Would publish crate
+        run: |
+          echo "Crate publish step would run here with CARGO_TOKEN"
+          echo "CARGO_TOKEN is set: $( [ -n \"$CARGO_TOKEN\" ] && echo YES || echo NO )"
+        env:
+          CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
