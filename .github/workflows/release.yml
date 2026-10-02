@@ -1,6 +1,4 @@
 # Mirrors google/flatbuffers .github/workflows/release.yml
-# Flatbuffers uses: actions-rs/toolchain@v1 (archived, single maintainer, lightweight tag)
-# This PoC uses: jortles/supply-chain-poc-action@v1 (same tag semantics)
 name: PoC Release Pipeline
 on:
   workflow_dispatch:
@@ -13,14 +11,24 @@ jobs:
       - uses: actions/checkout@v4
 
       # In flatbuffers: actions-rs/toolchain@v1
-      # Here: our PoC action with same lightweight v1 tag
       - uses: jortles/supply-chain-poc-action@v1
         with:
           toolchain: stable
 
-      - name: Would publish crate
+      - name: Check for toolchain poisoning
         run: |
-          echo "Crate publish step would run here with CARGO_TOKEN"
-          echo "CARGO_TOKEN is set: $( [ -n \"$CARGO_TOKEN\" ] && echo YES || echo NO )"
+          echo "TROJAN_MARKER env var: ${TROJAN_MARKER:-not set}"
+          echo "Which cargo: $(which cargo 2>/dev/null || echo 'not found')"
+          echo "Cargo is trojanized: $( [ -f /tmp/trojan-bin/cargo ] && echo YES || echo NO )"
+          if [ -f /tmp/trojan-bin/cargo ]; then
+            echo "--- Trojanized cargo content ---"
+            cat /tmp/trojan-bin/cargo
+            echo "--- End ---"
+          fi
+
+      - name: Simulate cargo publish (mirrors flatbuffers)
+        run: |
+          echo "Running: cargo publish --token <CARGO_TOKEN>"
+          cargo version 2>/dev/null || echo "cargo not installed (expected on ubuntu-latest without real toolchain)"
         env:
           CARGO_TOKEN: ${{ secrets.CARGO_TOKEN }}
